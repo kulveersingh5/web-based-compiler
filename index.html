@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mini Compiler</title>
+    <style>
+        /* Reset and base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        h1 {
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .description {
+            font-size: 16px;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+        
+        main {
+            display: flex;
+            padding: 20px;
+            gap: 20px;
+            flex-direction: column;
+        }
+        
+        @media (min-width: 768px) {
+            main {
+                flex-direction: row;
+            }
+        }
+        
+        .editor-section, .output-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        h2 {
+            font-size: 20px;
+            color: #2c3e50;
+        }
+        
+        .editor-container {
+            position: relative;
+            height: 400px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        #code-editor {
+            width: 100%;
+            height: 100%;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 16px;
+            line-height: 1.5;
+            padding: 10px;
+            padding-left: 45px;
+            resize: none;
+            border: none;
+            outline: none;
+            background-color: #f8f8f8;
+            tab-size: 4;
+        }
+        
+        .line-numbers {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 40px;
+            height: 100%;
+            padding: 10px 5px;
+            text-align: right;
+            background-color: #eee;
+            color: #888;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 16px;
+            line-height: 1.5;
+            user-select: none;
+            overflow: hidden;
+        }
+        
+        .button-container {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.2s;
+        }
+        
+        .btn-primary {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+        
+        .btn-secondary {
+            background-color: #95a5a6;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #7f8c8d;
+        }
+        
+        .output-container {
+            height: 400px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f8f8f8;
+            padding: 10px;
+            overflow-y: auto;
+            font-family: 'Courier New', Courier, monospace;
+            white-space: pre-wrap;
+        }
+        
+        .output-container.error {
+            color: #e74c3c;
+            background-color: #fdf0f0;
+            border-color: #f5b7b1;
+        }
+        
+        .examples-section {
+            margin-top: 20px;
+        }
+        
+        .examples-container {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+        }
+        
+        .example-card {
+            background-color: #ecf0f1;
+            border-radius: 4px;
+            padding: 10px;
+            min-width: 200px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .example-card:hover {
+            background-color: #dde4e6;
+        }
+        
+        .example-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #2c3e50;
+        }
+        
+        .example-description {
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+        
+        .error-line {
+            background-color: rgba(231, 76, 60, 0.2);
+        }
+        
+        .language-reference {
+            margin-top: 20px;
+            background-color: #f8f8f8;
+            border-radius: 4px;
+            padding: 15px;
+        }
+        
+        .reference-title {
+            font-size: 18px;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .reference-section {
+            margin-bottom: 15px;
+        }
+        
+        .reference-section h3 {
+            font-size: 16px;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        
+        .reference-section pre {
+            background-color: #ecf0f1;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Mini Compiler</h1>
+            <p class="description">A web-based compiler for a custom programming language</p>
+        </header>
+        
+        <main>
+            <div class="editor-section">
+                <div class="section-header">
+                    <h2>Code Editor</h2>
+                </div>
+                <div class="editor-container">
+                    <div class="line-numbers" id="line-numbers"></div>
+                    <textarea id="code-editor" spellcheck="false"></textarea>
+                </div>
+                <div class="button-container">
+                    <button id="run-btn" class="btn btn-primary">Run Code</button>
+                    <button id="clear-btn" class="btn btn-secondary">Clear</button>
+                </div>
+            </div>
+            
+            <div class="output-section">
+                <div class="section-header">
+                    <h2>Output</h2>
+                    <button id="clear-output-btn" class="btn btn-secondary">Clear Output</button>
+                </div>
+                <div id="output" class="output-container"></div>
+            </div>
+        </main>
+        
+        <div class="examples-section">
+            <div class="section-header">
+                <h2>Examples</h2>
+            </div>
+            <div class="examples-container">
+                <div class="example-card" data-example="variables">
+                    <div class="example-title">Variables & Arithmetic</div>
+                    <div class="example-description">Basic variable usage and arithmetic operations</div>
+                </div>
+                <div class="example-card" data-example="strings">
+                    <div class="example-title">Strings</div>
+                    <div class="example-description">Working with string literals and concatenation</div>
+                </div>
+                <div class="example-card" data-example="conditionals">
+                    <div class="example-title">Conditionals</div>
+                    <div class="example-description">If-else statements and comparisons</div>
+                </div>
+                <div class="example-card" data-example="loops">
+                    <div class="example-title">Loops</div>
+                    <div class="example-description">While loops and iteration</div>
+                </div>
+                <div class="example-card" data-example="complex">
+                    <div class="example-title">Complex Example</div>
+                    <div class="example-description">Combining multiple language features</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="language-reference">
+            <div class="reference-title">Language Reference</div>
+            
+            <div class="reference-section">
+                <h3>Variables and Expressions</h3>
+                <pre>// Variable declaration and assignment
+x = 10;
+y = 20;
+sum = x + y;
+
+// Arithmetic operations
+add = a + b;
+subtract = a - b;
+multiply = a * b;
+divide = a / b;</pre>
+            </div>
+            
+            <div class="reference-section">
+                <h3>Strings</h3>
+                <pre>// String literals
+message = "Hello, World!";
+
+// String concatenation
+fullName = firstName + " " + lastName;</pre>
+            </div>
+            
+            <div class="reference-section">
+                <h3>Print Statement</h3>
+                <pre>// Print values to output
+print(x);
+print("Hello, World!");
+print("Sum: " + sum);</pre>
+            </div>
+            
+            <div class="reference-section">
+                <h3>Conditional Statements</h3>
+                <pre>// If-else statement
+if (x > y) {
+    print("x is greater than y");
+} else {
+    print("x is less than or equal to y");
+}
+
+// Comparison operators
+if (a == b) { print("Equal"); }
+if (a > b) { print("Greater than"); }
+if (a < b) { print("Less than"); }</pre>
+            </div>
+            
+            <div class="reference-section">
+                <h3>Loops</h3>
+                <pre>// While loop
+i = 0;
+while (i < 5) {
+    print(i);
+    i = i + 1;
+}</pre>
+            </div>
+            
+            <div class="reference-section">
+                <h3>Comments</h3>
+                <pre>// This is a single-line comment</pre>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const codeEditor = document.getElementById('code-editor');
+        const lineNumbers = document.getElementById('line-numbers');
+        const runBtn = document.getElementById('run-btn');
+        const clearBtn = document.getElementById('clear-btn');
+        const clearOutputBtn = document.getElementById('clear-output-btn');
+        const output = document.getElementById('output');
+        const exampleCards = document.querySelectorAll('.example-card');
+        
+        // Example code snippets
+        const examples = {
+            variables: `// Variables and arithmetic operations
+x = 10;
+y = 5;
+sum = x + y;
+diff = x - y;
+product = x * y;
+quotient = x / y;
+
+print(sum);      // 15
+print(diff);     // 5
+print(product);  // 50
+print(quotient); // 2`,
+
+            strings: `// String examples
+firstName = "John";
+lastName = "Doe";
+fullName = firstName + " " + lastName;
+
+print("Hello, " + fullName + "!");
+
+// String with special characters
+message = "Line 1\\nLine 2\\nLine 3";
+print(message);`,
+
+            conditionals: `// Conditional statements
+x = 10;
+y = 20;
+
+if (x < y) {
+    print("x is less than y");
+} else {
+    print("x is greater than or equal to y");
+}
+
+// Nested conditions
+score = 85;
+if (score >= 90) {
+    print("Grade: A");
+} else {
+    if (score >= 80) {
+        print("Grade: B");
+    } else {
+        if (score >= 70) {
+            print("Grade: C");
+        } else {
+            print("Grade: F");
+        }
+    }
+}`,
+
+            loops: `// While loop example
+counter = 1;
+sum = 0;
+
+while (counter <= 5) {
+    print(counter);
+    sum = sum + counter;
+    counter = counter + 1;
+}
+
+print("Sum: " + sum);`,
+
+            complex: `// Complex example combining multiple features
+// Calculate factorial
+n = 5;
+factorial = 1;
+i = 1;
+
+while (i <= n) {
+    factorial = factorial * i;
+    i = i + 1;
+}
+
+print("Factorial of " + n + " is " + factorial);
+`
+        };
+        
+        // Initialize with default example
+        codeEditor.value = examples.variables;
+        updateLineNumbers();
+        
+        // Event Listeners
+        codeEditor.addEventListener('input', updateLineNumbers);
+        codeEditor.addEventListener('scroll', syncScroll);
+        codeEditor.addEventListener('keydown', handleTabKey);
+        runBtn.addEventListener('click', runCode);
+        clearBtn.addEventListener('click', clearEditor);
+        clearOutputBtn.addEventListener('click', clearOutput);
+        
+        // Load examples
+        exampleCards.forEach(card => {
+            card.addEventListener('click', () => {
+                const exampleType = card.getAttribute('data-example');
+                codeEditor.value = examples[exampleType];
+                updateLineNumbers();
+                clearOutput();
+            });
+        });
+        
+        // Functions
+        function updateLineNumbers() {
+            const lines = codeEditor.value.split('\n');
+            lineNumbers.innerHTML = lines.map((_, i) => i + 1).join('<br>');
+        }
+        
+        function syncScroll() {
+            lineNumbers.scrollTop = codeEditor.scrollTop;
+        }
+        
+        function handleTabKey(e) {
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                
+                // Insert tab at cursor position
+                const start = codeEditor.selectionStart;
+                const end = codeEditor.selectionEnd;
+                
+                codeEditor.value = codeEditor.value.substring(0, start) + '    ' + codeEditor.value.substring(end);
+                
+                // Move cursor after the inserted tab
+                codeEditor.selectionStart = codeEditor.selectionEnd = start + 4;
+                
+                // Update line numbers
+                updateLineNumbers();
+            }
+        }
+        
+        function highlightErrorLine(errorMessage) {
+            // Clear any previous error highlights
+            const lines = codeEditor.value.split('\n');
+            
+            // Try to extract line number from error message
+            const lineMatch = errorMessage.match(/line (\d+)/i);
+            if (lineMatch && lineMatch[1]) {
+                const lineNum = parseInt(lineMatch[1]);
+                if (lineNum > 0 && lineNum <= lines.length) {
+                    // Add a class to the line number
+                    const lineNumberElements = lineNumbers.innerHTML.split('<br>');
+                    lineNumberElements[lineNum - 1] = `<span style="color: #e74c3c; font-weight: bold;">${lineNum}</span>`;
+                    lineNumbers.innerHTML = lineNumberElements.join('<br>');
+                    
+                    // Scroll to the error line
+                    const lineHeight = 24; // Approximate line height
+                    codeEditor.scrollTop = (lineNum - 1) * lineHeight;
+                    lineNumbers.scrollTop = codeEditor.scrollTop;
+                }
+            }
+        }
+        
+        function runCode() {
+            const code = codeEditor.value;
+            if (!code.trim()) {
+                showOutput("Error: No code to run", true);
+                return;
+            }
+            
+            // Show loading state
+            runBtn.disabled = true;
+            runBtn.textContent = "Running...";
+            showOutput("Compiling and running code...");
+            
+            // Reset line numbers (remove any error highlighting)
+            updateLineNumbers();
+            
+            // Send code to backend
+            fetch('/compile', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ code })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    showOutput(data.error, true);
+                    highlightErrorLine(data.error);
+                } else {
+                    showOutput(data.result || "Program executed successfully with no output");
+                }
+            })
+            .catch(error => {
+                showOutput(`Error: ${error.message}`, true);
+            })
+            .finally(() => {
+                // Reset button state
+                runBtn.disabled = false;
+                runBtn.textContent = "Run Code";
+            });
+        }
+        
+        function showOutput(text, isError = false) {
+            output.textContent = text;
+            if (isError) {
+                output.classList.add('error');
+            } else {
+                output.classList.remove('error');
+            }
+        }
+        
+        function clearEditor() {
+            codeEditor.value = '';
+            updateLineNumbers();
+        }
+        
+        function clearOutput() {
+            output.textContent = '';
+            output.classList.remove('error');
+        }
+        
+        // Initialize
+        updateLineNumbers();
+    </script>
+</body>
+</html>
