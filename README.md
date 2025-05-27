@@ -1,26 +1,33 @@
-# web-based-compiler
-ParseCraft Compiler is a web-based compiler playground designed to help users learn the fundamentals of language design and interpretation. It features a live code editor, syntax highlighting, a custom-built lexer, parser, and interpreter, along with real-time output and error display. Users can write code in a simple language, compile it, and instantly see the results—all from the browser.
+# 🌐 Web-Based Mini Compiler
+![Image](https://github.com/user-attachments/assets/7f665c1f-321f-4ba5-af68-63df3ed8ef24)
 
-🧰 Technologies Used
+A lightweight, browser-based compiler for a simple custom programming language. Built with **Python (Flask)** for the backend and **HTML, CSS, and JavaScript** (single `index.html`) for the frontend.
 
-Frontend:
+---
+## Features
+  - Custom language with support for:
+  - Variable declarations: `x = 10`
+  - Arithmetic operations: `+`, `-`, `*`, `/`
+  - Print statements: `print()`
+  - Conditional logic: `if-else`
+  - While loops: `while(condition){statement}`
+---
+## Project Structure
+mini-compiler/
 
-1. HTML5
-2. CSS3 (Custom Dark Theme)
-3. JavaScript (Vanilla)
+├── app.py # Flask backend
 
-CodeMirror – for code editing with syntax highlighting
+├── compiler.py # Compiler engine (lexing, parsing, interpreting)
 
-Backend:
+├── index.html # Frontend code editor UI
 
-1. Python 3
-2. Custom Lexer, Parser, AST, and Interpreter (handwritten),Error handling and runtime output
-3. Flask – lightweight API server for compiling and returning results
+└── README.md # This file
 
-Communication:
-REST API (/api/compile) using JSON for frontend-backend interaction
+---
+## How to Run Locally
+```bash
+# Install dependencies
+pip install flask flask-cors
 
-Others:
-Responsive design with mobile-friendly layout
-Static hosting support for serving the frontend via Flask
-
+# Run the Flask server
+python app.py
